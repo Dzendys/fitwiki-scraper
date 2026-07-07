@@ -42,9 +42,11 @@ def get_fitwiki_client():
     local_env_path = os.path.join(BASE_DIR, ".env")
     fitwiki_env_path = os.path.join(FITWIKI_CORE_RESOLVED_PATH, ".env") if FITWIKI_CORE_RESOLVED_PATH else ""
     
-    cookies_str = ""
+    # Initialize from current process environment (crucial for Docker env_file injection!)
+    cookies_str = os.environ.get("FITWIKI_COOKIES", "")
+    
     # Try local .env first
-    if os.path.exists(local_env_path):
+    if not cookies_str and os.path.exists(local_env_path):
         load_dotenv(local_env_path, override=True)
         cookies_str = os.environ.get("FITWIKI_COOKIES", "")
         
