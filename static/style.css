@@ -447,7 +447,7 @@ body {
 /* --- Section Selector Grid --- */
 .sections-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     min-height: 60px;
 }
@@ -456,18 +456,21 @@ body {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-sm);
-    padding: 14px 16px;
+    padding: 12px 14px;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 8px;
     transition: var(--transition-smooth);
+    min-width: 0;
 }
 
 .section-tile:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255,255,255,0.2);
-    transform: translateX(4px);
+    transform: translateY(-2px);
 }
 
 .section-tile.selected {
@@ -478,13 +481,15 @@ body {
 
 .section-name {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12.5px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .section-count {
-    font-size: 11px;
+    font-size: 10px;
     background: rgba(255,255,255,0.06);
     padding: 3px 8px;
     border-radius: 10px;
