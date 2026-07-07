@@ -137,16 +137,26 @@ def download_section():
     if not course or not section:
         return Response("data: " + json.dumps({'status': 'error', 'message': 'Missing course or section.'}) + "\n\n", mimetype='text/event-stream')
 
+    sections = [s.strip().lower() for s in section.split(',') if s.strip()]
+
     def event_stream():
         try:
-            yield "data: " + json.dumps({'status': 'log', 'message': f'Initializing client for course: {course.upper()}, section: {section}...'}) + "\n\n"
+            yield "data: " + json.dumps({'status': 'log', 'message': f"Initializing client for course: {course.upper()}, sections: {', '.join(sections)}..."}) + "\n\n"
             client = get_fitwiki_client()
             
             yield "data: " + json.dumps({'status': 'log', 'message': 'Fetching list of section pages...'}) + "\n\n"
-            pages = client.list_section_pages(course, section)
+            
+            # Combine pages from all requested sections
+            pages = []
+            for sec in sections:
+                sec_pages = client.list_section_pages(course, sec)
+                if sec_pages:
+                    for p in sec_pages:
+                        p['section'] = sec
+                        pages.append(p)
             
             if not pages:
-                yield "data: " + json.dumps({'status': 'error', 'message': f'No pages found for course {course.upper()} in section {section}.'}) + "\n\n"
+                yield "data: " + json.dumps({'status': 'error', 'message': f"No pages found for course {course.upper()} in sections: {', '.join(sections)}."}) + "\n\n"
                 return
                 
             total = len(pages)
@@ -154,13 +164,14 @@ def download_section():
             yield "data: " + json.dumps({
                 'status': 'start', 
                 'total': total,
-                'pages': [{'index': idx, 'title': client._clean_title(p['title'], section, p['url'])} for idx, p in enumerate(pages, 1)]
+                'pages': [{'index': idx, 'title': client._clean_title(p['title'], p['section'], p['url'])} for idx, p in enumerate(pages, 1)]
             }) + "\n\n"
 
             for idx, p in enumerate(pages, 1):
                 raw_title = p['title']
                 url = p['url']
-                title = client._clean_title(raw_title, section, url)
+                sec = p['section']
+                title = client._clean_title(raw_title, sec, url)
                 yield "data: " + json.dumps({
                     'status': 'progress', 
                     'index': idx, 
@@ -169,8 +180,8 @@ def download_section():
                     'log': f"[{idx}/{total}] Scraping: '{title}'..."
                 }) + "\n\n"
                 try:
-                    # Download and compile to PDF based on user choice
-                    res = client.download_page(url, section, raw_title, compile_pdf=compile_pdf, course_code=course)
+                    # Download and compile to PDF based on user choice using the correct section
+                    res = client.download_page(url, sec, raw_title, compile_pdf=compile_pdf, course_code=course)
                     
                     status_log = ""
                     if res.get('is_attachment'):

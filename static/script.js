@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State Variables ---
     let courses = [];
     let selectedCourse = null;
-    let selectedSection = null;
+    let selectedSections = [];
     let downloadEventSource = null;
 
     // --- DOM Elements ---
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnRemoveSelected.addEventListener('click', () => {
         selectedCourse = null;
-        selectedSection = null;
+        selectedSections = [];
         selectedCourseCard.style.display = 'none';
         searchInputWrapper.style.display = 'block';
         courseSearchInput.value = '';
@@ -258,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadSections(courseCode) {
+        selectedSections = [];
         sectionsContainer.innerHTML = '<div class="placeholder-text"><i class="fa-solid fa-spinner fa-spin"></i> Hledání sekcí a materiálů...</div>';
         sectionGroup.style.opacity = '1';
         sectionGroup.style.pointerEvents = 'auto';
@@ -290,20 +291,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="section-name">${s.name}</span>
                 <span class="section-count">${s.count} stránek</span>
             `;
-            div.addEventListener('click', () => selectSection(s.name, div));
+            div.addEventListener('click', () => toggleSection(s.name, div));
             sectionsContainer.appendChild(div);
         });
     }
 
-    function selectSection(name, element) {
-        selectedSection = name;
+    function toggleSection(name, element) {
+        const idx = selectedSections.indexOf(name);
+        if (idx > -1) {
+            selectedSections.splice(idx, 1);
+            element.classList.remove('selected');
+            logToConsole(`Systém: Odebrána sekce '${name}'`, 'system-line');
+        } else {
+            selectedSections.push(name);
+            element.classList.add('selected');
+            logToConsole(`Systém: Vybrána sekce '${name}'`, 'system-line');
+        }
         
-        // Highlight active tile
-        document.querySelectorAll('.section-tile').forEach(t => t.classList.remove('selected'));
-        element.classList.add('selected');
-        
-        btnStartDownload.disabled = false;
-        logToConsole(`Systém: Vybrána sekce '${name}'`, 'system-line');
+        btnStartDownload.disabled = (selectedSections.length === 0);
     }
 
     // --- Console Logger ---
@@ -343,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Download Flow (SSE) ---
     btnStartDownload.addEventListener('click', () => {
-        if (!selectedCourse || !selectedSection) return;
+        if (!selectedCourse || selectedSections.length === 0) return;
 
         // Reset progress bar
         progressWrapper.style.display = 'block';
@@ -358,14 +363,14 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBoard.style.display = 'flex';
         progressBoard.innerHTML = '<div class="placeholder-text"><i class="fa-solid fa-spinner fa-spin"></i> Hledání stránek a příloh...</div>';
 
-        logToConsole(`Stahování: Spouštím import pro ${selectedCourse.code.toUpperCase()} -> ${selectedSection}...`, 'system-line');
+        logToConsole(`Stahování: Spouštím import pro ${selectedCourse.code.toUpperCase()} -> ${selectedSections.join(', ')}...`, 'system-line');
 
         // Close existing SSE if any
         if (downloadEventSource) {
             downloadEventSource.close();
         }
 
-        const url = `/api/download?course=${selectedCourse.code}&section=${selectedSection}`;
+        const url = `/api/download?course=${selectedCourse.code}&section=${selectedSections.join(',')}`;
         downloadEventSource = new EventSource(url);
 
         downloadEventSource.onmessage = (event) => {
