@@ -382,75 +382,81 @@ def download_archive():
     include_markdown = request.args.get('markdown', 'true').lower() == 'true'
     include_pdf = request.args.get('pdf', 'true').lower() == 'true'
     
-    if not course or not section:
-        return jsonify({'success': False, 'message': 'Missing course or section.'}), 400
+    if not course:
+        return jsonify({'success': False, 'message': 'Missing course.'}), 400
         
     if not include_markdown and not include_pdf:
         return jsonify({'success': False, 'message': 'You must select at least one format (markdown or pdf) to download.'}), 400
-        
-    md_dir = os.path.join(DOWNLOADS_DIR, "markdown_output", course, section)
-    pdf_dir = os.path.join(DOWNLOADS_DIR, "pdfs", course, section)
-    
-    if not os.path.exists(md_dir) and not os.path.exists(pdf_dir):
-        return jsonify({'success': False, 'message': 'No downloaded files found for this section.'}), 404
         
     # Create ZIP in memory
     memory_file = io.BytesIO()
     with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         written_files = set()
         
-        # 1. Process files in md_dir (markdown files, images, raw attachments)
-        if os.path.exists(md_dir):
-            for root, dirs, files in os.walk(md_dir):
+        def add_dir_to_zip(base_directory, target_format):
+            if not os.path.exists(base_directory):
+                return
+            for root, dirs, files in os.walk(base_directory):
                 for file in files:
                     file_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(file_path, md_dir)
+                    rel_path = os.path.relpath(file_path, base_directory)
                     
                     name, ext = os.path.splitext(file)
                     ext = ext.lower()
                     
-                    # Check if it's an image
                     is_image = "images" in root.split(os.sep) or ext in ['.png', '.jpg', '.jpeg', '.gif', '.svg']
                     is_page = ext in ['.md', '.html']
                     
-                    if is_image:
-                        if include_markdown:
-                            # Keep images in their images/ relative subfolder in the ZIP root
-                            archive_path = os.path.join("images", os.path.basename(file_path))
-                            if archive_path not in written_files:
-                                zipf.write(file_path, archive_path)
-                                written_files.add(archive_path)
-                    elif is_page:
-                        if include_markdown:
-                            archive_path = rel_path # directly in root of zip (e.g. file.md)
-                            if archive_path not in written_files:
-                                zipf.write(file_path, archive_path)
-                                written_files.add(archive_path)
-                    else:
-                        # Raw attachments (like .zip, .docx) are always packed directly in the root of the ZIP
-                        archive_path = rel_path
-                        if archive_path not in written_files:
-                            zipf.write(file_path, archive_path)
-                            written_files.add(archive_path)
-                            
-        # 2. Process files in pdf_dir (compiled PDFs and PDF attachments)
-        if include_pdf and os.path.exists(pdf_dir):
-            for root, dirs, files in os.walk(pdf_dir):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(file_path, pdf_dir)
-                    
-                    # PDF files go directly in the root of the ZIP
-                    archive_path = rel_path
-                    if archive_path not in written_files:
-                        zipf.write(file_path, archive_path)
-                        written_files.add(archive_path)
-                    
+                    if target_format == 'md':
+                        if is_image:
+                            if include_markdown:
+                                if rel_path not in written_files:
+                                    zipf.write(file_path, rel_path)
+                                    written_files.add(rel_path)
+                        elif is_page:
+                            if include_markdown:
+                                if rel_path not in written_files:
+                                    zipf.write(file_path, rel_path)
+                                    written_files.add(rel_path)
+                        else:
+                            # Raw attachments (like .zip, .docx) are always packed
+                            if rel_path not in written_files:
+                                zipf.write(file_path, rel_path)
+                                written_files.add(rel_path)
+                    elif target_format == 'pdf':
+                        if ext == '.pdf':
+                            if include_pdf:
+                                if rel_path not in written_files:
+                                    zipf.write(file_path, rel_path)
+                                    written_files.add(rel_path)
+
+        if section and section != 'all':
+            md_dir = os.path.join(DOWNLOADS_DIR, "markdown_output", course, section)
+            pdf_dir = os.path.join(DOWNLOADS_DIR, "pdfs", course, section)
+            
+            if not os.path.exists(md_dir) and not os.path.exists(pdf_dir):
+                return jsonify({'success': False, 'message': 'No downloaded files found for this section.'}), 404
+                
+            add_dir_to_zip(md_dir, 'md')
+            add_dir_to_zip(pdf_dir, 'pdf')
+            filename = f"{course.upper()}_{section}.zip"
+        else:
+            # Package all sections of the course
+            md_course_dir = os.path.join(DOWNLOADS_DIR, "markdown_output", course)
+            pdf_course_dir = os.path.join(DOWNLOADS_DIR, "pdfs", course)
+            
+            if not os.path.exists(md_course_dir) and not os.path.exists(pdf_course_dir):
+                return jsonify({'success': False, 'message': 'No downloaded files found for this course.'}), 404
+                
+            add_dir_to_zip(md_course_dir, 'md')
+            add_dir_to_zip(pdf_course_dir, 'pdf')
+            filename = f"{course.upper()}_all_materials.zip"
+            
     memory_file.seek(0)
     return Response(
         memory_file.getvalue(),
         mimetype="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={course.upper()}_{section}.zip"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 @app.route('/api/cleanup', methods=['POST'])

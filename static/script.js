@@ -561,8 +561,34 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const header = document.createElement('div');
             header.className = 'course-group-header';
-            header.innerHTML = `<i class="fa-solid fa-graduation-cap"></i> ${courseCode.toUpperCase()}`;
+            header.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 12px 18px;`;
+            header.innerHTML = `
+                <span style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-graduation-cap"></i> ${courseCode.toUpperCase()}</span>
+                <div class="zip-actions-group course-zip-actions" style="display: flex; gap: 8px; align-items: center;">
+                    <select class="form-select course-zip-format-select" style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 11px; padding: 4px 8px; outline: none; cursor: pointer; font-family: var(--font-sans); font-weight: 500;">
+                        <option value="both">MD + PDF</option>
+                        <option value="pdf">Pouze PDF</option>
+                        <option value="md">Pouze Markdown</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm btn-course-zip" data-course="${courseCode}" style="font-size: 11px; padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-file-zipper"></i> Stáhnout celý předmět (ZIP)
+                    </button>
+                </div>
+            `;
             courseCard.appendChild(header);
+            
+            // Add click handler for course-level ZIP download
+            header.querySelector('.btn-course-zip').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const c = e.currentTarget.getAttribute('data-course');
+                const select = header.querySelector('.course-zip-format-select');
+                const format = select.value;
+                
+                const fmtMarkdown = (format === 'both' || format === 'md');
+                const fmtPdf = (format === 'both' || format === 'pdf');
+                
+                window.open(`/api/archive?course=${c}&section=all&markdown=${fmtMarkdown}&pdf=${fmtPdf}`, '_blank');
+            });
             
             const wrapper = document.createElement('div');
             wrapper.className = 'section-group-wrapper';
