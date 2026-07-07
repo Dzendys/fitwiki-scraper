@@ -480,6 +480,12 @@ body {
     min-height: 0;
     overflow-y: auto;
     padding-right: 4px;
+    align-content: start;
+}
+
+.sections-grid .placeholder-text {
+    grid-column: span 2;
+    width: 100%;
 }
 
 .section-tile {
