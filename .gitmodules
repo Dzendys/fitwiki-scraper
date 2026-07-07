@@ -1,0 +1,3 @@
+[submodule "lib/fitwiki"]
+	path = lib/fitwiki
+	url = https://github.com/Dzendys/fitwiki-mcp.git
