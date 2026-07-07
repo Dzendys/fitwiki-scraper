@@ -80,3 +80,6 @@ The application can be fully configured using the following environment variable
 | `FLASK_HOST` | Host address the Flask web server binds to | `127.0.0.1` (`0.0.0.0` in Docker) |
 | `FLASK_PORT` | Port the Flask web server listens on | `5000` |
 | `FLASK_DEBUG` | Toggle Flask debug mode reload and verbose errors | `True` (`False` in Docker) |
+| `FITWIKI_COOKIES` | DokuWiki session cookie for private page access (e.g. `DokuWiki=abc...`) | *None* |
+| `FITWIKI_BASE_URL` | Base URL of the student Fit-Wiki portal | `https://fit-wiki.cz` |
+| `FITWIKI_DELAY` | Rate-limiting delay (in seconds) between HTTP requests | `1.0` |
