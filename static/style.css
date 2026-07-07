@@ -220,6 +220,11 @@ body {
         height: auto;
         max-height: none;
     }
+    #section-group, .sections-grid {
+        flex: none;
+        height: auto;
+        max-height: none;
+    }
 }
 
 /* --- Panel Component --- */
@@ -460,12 +465,19 @@ body {
 }
 
 /* --- Section Selector Grid --- */
+#section-group {
+    flex: 1 1 0%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .sections-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    min-height: 60px;
-    max-height: 260px;
+    flex: 1 1 0%;
+    min-height: 0;
     overflow-y: auto;
     padding-right: 4px;
 }
