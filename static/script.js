@@ -574,7 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="md">Pouze Markdown</option>
                     </select>
                     <button class="btn btn-secondary btn-sm btn-course-zip" data-course="${courseCode}" style="font-size: 11px; padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-file-zipper"></i> Stáhnout celý předmět (ZIP)
+                        <i class="fa-solid fa-file-zipper"></i> Stáhnout vše (ZIP)
                     </button>
                 </div>
             `;
