@@ -18,7 +18,10 @@ FitWiki Context Scraper is a web client interface that connects directly to the 
 
 ### 1. Using Docker Compose (Recommended)
 
-To run the web service in a sandboxed container, create a `docker-compose.yml` file:
+To run the web service in a sandboxed container, you can choose one of the following methods:
+
+**Option A: Using Docker Compose (Recommended)**
+Create a `docker-compose.yml` file:
 
 ```yaml
 services:
@@ -34,10 +37,23 @@ services:
     restart: unless-stopped
 ```
 
-Then start the container:
+Prepare your `.env` file from the example (`cp .env.example .env`) and start the service:
 
 ```bash
 docker compose up -d
+```
+
+**Option B: Using Docker Run**
+Prepare your `.env` file from the example (`cp .env.example .env`) and run the container:
+
+```bash
+docker run -d \
+  --name fitwiki-scraper \
+  -p 5000:5000 \
+  --env-file .env \
+  -v ./downloads:/app/downloads \
+  --restart unless-stopped \
+  ghcr.io/dzendys/fitwiki-scraper:latest
 ```
 
 The application will be accessible at `http://localhost:5000`. Your downloaded materials will be persistently synchronized inside the `./downloads` folder on your host machine.
