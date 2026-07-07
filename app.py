@@ -13,10 +13,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SUBMODULE_PATH = os.path.join(BASE_DIR, "lib", "fitwiki")
 DEV_PATH = os.getenv("FITWIKI_CORE_PATH")
 
+FITWIKI_CORE_RESOLVED_PATH = None
 if os.path.exists(SUBMODULE_PATH):
+    FITWIKI_CORE_RESOLVED_PATH = SUBMODULE_PATH
     if SUBMODULE_PATH not in sys.path:
         sys.path.insert(0, SUBMODULE_PATH)
 elif DEV_PATH and os.path.exists(DEV_PATH):
+    FITWIKI_CORE_RESOLVED_PATH = DEV_PATH
     if DEV_PATH not in sys.path:
         sys.path.insert(0, DEV_PATH)
 
@@ -37,7 +40,7 @@ os.makedirs(DOWNLOADS_DIR, exist_ok=True)
 def get_fitwiki_client():
     # Load cookies from fitwiki-mcp's .env if not found locally
     local_env_path = os.path.join(BASE_DIR, ".env")
-    fitwiki_env_path = os.path.join(FITWIKI_MCP_PATH, ".env")
+    fitwiki_env_path = os.path.join(FITWIKI_CORE_RESOLVED_PATH, ".env") if FITWIKI_CORE_RESOLVED_PATH else ""
     
     cookies_str = ""
     # Try local .env first
