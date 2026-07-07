@@ -48,8 +48,8 @@ body {
     font-family: var(--font-sans);
     background-color: var(--bg-base);
     color: var(--text-primary);
-    overflow-x: hidden;
-    min-height: 100vh;
+    overflow: hidden;
+    height: 100vh;
     display: flex;
     justify-content: center;
     position: relative;
@@ -120,7 +120,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    min-height: 100vh;
+    height: 100vh;
+    max-height: 100vh;
 }
 
 /* --- Header Section --- */
@@ -201,13 +202,19 @@ body {
     grid-template-columns: 420px 1fr;
     gap: 24px;
     align-items: stretch;
-    flex-grow: 1;
-    height: 780px;
-    max-height: calc(100vh - 120px);
-    min-height: 600px;
+    flex: 1 1 0%;
+    min-height: 0;
 }
 
 @media (max-width: 950px) {
+    body {
+        height: auto;
+        overflow: auto;
+    }
+    .app-container {
+        height: auto;
+        max-height: none;
+    }
     .dashboard-grid {
         grid-template-columns: 1fr;
         height: auto;
@@ -252,6 +259,9 @@ body {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 /* --- Form Controls --- */
