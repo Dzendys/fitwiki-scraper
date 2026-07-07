@@ -561,9 +561,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const header = document.createElement('div');
             header.className = 'course-group-header';
-            header.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 12px 18px;`;
+            header.style.cssText = `display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; cursor: pointer;`;
             header.innerHTML = `
-                <span style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-graduation-cap"></i> ${courseCode.toUpperCase()}</span>
+                <span class="course-title-left" style="display: flex; align-items: center; gap: 8px; flex-grow: 1; user-select: none;">
+                    <i class="fa-solid fa-chevron-right course-toggle-icon" style="transition: transform 0.2s; color: var(--text-muted); font-size: 11px; transform: rotate(90deg);"></i>
+                    <i class="fa-solid fa-graduation-cap"></i> ${courseCode.toUpperCase()}
+                </span>
                 <div class="zip-actions-group course-zip-actions" style="display: flex; gap: 8px; align-items: center;">
                     <select class="form-select course-zip-format-select" style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 11px; padding: 4px 8px; outline: none; cursor: pointer; font-family: var(--font-sans); font-weight: 500;">
                         <option value="both">MD + PDF</option>
@@ -577,6 +580,21 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             courseCard.appendChild(header);
             
+            const wrapper = document.createElement('div');
+            wrapper.className = 'section-group-wrapper';
+            
+            // Add toggle click handler to collapse/expand the entire course card
+            header.querySelector('.course-title-left').addEventListener('click', () => {
+                const isCollapsed = wrapper.style.display === 'none';
+                wrapper.style.display = isCollapsed ? 'block' : 'none';
+                header.querySelector('.course-toggle-icon').style.transform = isCollapsed ? 'rotate(90deg)' : 'rotate(0deg)';
+            });
+            
+            // Prevent dropdown clicks from triggering course collapse
+            header.querySelector('.course-zip-format-select').addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            
             // Add click handler for course-level ZIP download
             header.querySelector('.btn-course-zip').addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -589,9 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 window.open(`/api/archive?course=${c}&section=all&markdown=${fmtMarkdown}&pdf=${fmtPdf}`, '_blank');
             });
-            
-            const wrapper = document.createElement('div');
-            wrapper.className = 'section-group-wrapper';
             
             // Loop sections in course
             const sections = coursesData[courseCode];
