@@ -1,0 +1,25 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Environment configuration
+.env
+
+# Local downloads and caches
+downloads/
+cache/
+.cache/
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Editor and OS metadata
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo

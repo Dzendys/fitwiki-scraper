@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitWiki Scraper Console 🌀</title>
+    
+    <!-- Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css?v=176">
+    
+    <!-- Markdown Parser (Marked) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="glow-container">
+        <div class="glow-orb" id="orb1"></div>
+        <div class="glow-orb" id="orb2"></div>
+        <div class="glow-orb" id="orb3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar/Header -->
+        <header class="main-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-circle-nodes pulse-animation"></i>
+                </div>
+                <div>
+                    <h1>FitWiki Scraper</h1>
+                    <p class="subtitle">Context & Material Downloader</p>
+                </div>
+            </div>
+            
+            <div class="status-panel">
+                <div class="cookie-status" id="cookie-status-badge">
+                    <span class="status-dot red"></span>
+                    <span class="status-text">Načítání...</span>
+                </div>
+                <button class="btn btn-secondary" id="btn-open-settings" title="Nastavení cookies">
+                    <i class="fa-solid fa-cookie-bite"></i> Nastavit Cookies
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Side: Controls -->
+            <section class="panel panel-controls">
+                <div class="panel-header">
+                    <i class="fa-solid fa-sliders"></i>
+                    <h2>Ovládací Panel</h2>
+                </div>
+                
+                <div class="panel-body">
+                    <!-- Step 1: Course Selection -->
+                    <div class="form-group">
+                        <label for="course-search"><span class="step-num">1</span> Vyberte předmět</label>
+                        <div class="search-input-wrapper">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="course-search" placeholder="Hledat předmět (např. BI-OSY)..." autocomplete="off">
+                            <button class="clear-search-btn" id="btn-clear-search"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="dropdown-list-container" id="courses-dropdown">
+                            <div class="dropdown-items" id="courses-list">
+                                <div class="dropdown-loading"><i class="fa-solid fa-spinner fa-spin"></i> Načítání předmětů...</div>
+                            </div>
+                        </div>
+                        <div class="selected-course-card" id="selected-course-card" style="display: none;">
+                            <div class="card-icon"><i class="fa-solid fa-book-bookmark"></i></div>
+                            <div class="card-details">
+                                <span class="card-code" id="selected-code">BI-OSY</span>
+                                <span class="card-name" id="selected-title">Operační systémy</span>
+                            </div>
+                            <button class="card-remove-btn" id="btn-remove-selected"><i class="fa-solid fa-circle-xmark"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Section/Category Selection -->
+                    <div class="form-group" id="section-group" style="opacity: 0.5; pointer-events: none;">
+                        <label><span class="step-num">2</span> Zvolte sekci k importu</label>
+                        <div class="sections-grid" id="sections-container">
+                            <!-- Populated dynamically -->
+                            <div class="placeholder-text">Vyberte nejdříve předmět</div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="action-bar">
+                        <button class="btn btn-primary btn-block btn-large" id="btn-start-download" disabled>
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Spustit stahování
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Console and Files -->
+            <section class="panel panel-display">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="tab-console">
+                        <i class="fa-solid fa-terminal"></i> Konzole a Průběh
+                    </button>
+                    <button class="tab-btn" data-tab="tab-files" id="btn-refresh-files">
+                        <i class="fa-solid fa-folder-open"></i> Stažené soubory
+                    </button>
+                </div>
+
+                <div class="tab-content-container">
+                    
+                    <!-- Tab: Console -->
+                    <div class="tab-content active" id="tab-console">
+                        <div class="progress-container" style="display: none;" id="progress-wrapper">
+                            <div class="progress-header">
+                                <span class="progress-title" id="progress-title-text">Stahování stránek...</span>
+                                <span class="progress-percentage" id="progress-percent">0%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="progress-bar"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <span id="progress-numbers">0 / 0 hotovo</span>
+                                <span class="pulse-animation" id="progress-spinner"><i class="fa-solid fa-spinner fa-spin"></i></span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Board (Graphical UI instead of terminal) -->
+                        <div class="progress-empty-state" id="progress-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; flex-grow: 1; color: var(--text-muted); text-align: center; padding: 60px 20px;">
+                            <i class="fa-solid fa-cloud-arrow-down" style="font-size: 48px; color: var(--border-color); filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.15));"></i>
+                            <div style="font-size: 15px; font-weight: 500; color: var(--text-primary);">Připraven k importu</div>
+                            <div style="font-size: 12.5px; max-width: 280px; line-height: 1.5; color: var(--text-muted);">Vyberte předmět a sekci v levém panelu a klikněte na „Spustit stahování“.</div>
+                        </div>
+                        
+                        <div class="progress-board" id="progress-board" style="display: none; flex-direction: column; gap: 10px; flex: 1 1 0%; min-height: 0; overflow-y: auto; padding-right: 4px; margin-top: 16px;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Tab: Downloaded Files -->
+                    <div class="tab-content" id="tab-files">
+                        <div class="tab-actions-bar" style="display: flex; justify-content: flex-end; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px;">
+                            <button class="btn btn-secondary btn-sm" id="btn-clear-downloads" style="background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(220, 38, 38, 0.4); color: #fca5a5; font-size: 11px; display: flex; align-items: center; gap: 6px; padding: 6px 12px;" title="Smazat všechny stažené soubory a vymazat mezipaměť">
+                                <i class="fa-solid fa-trash-can"></i> Smazat stažené & cache
+                            </button>
+                        </div>
+                        <div class="file-browser" id="file-browser-container">
+                            <!-- Populated dynamically -->
+                            <div class="browser-loading"><i class="fa-solid fa-spinner fa-spin"></i> Hledání stažených souborů...</div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Cookies Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-cookie-bite"></i> Nastavení DokuWiki Cookies</h3>
+                <button class="modal-close" id="btn-close-settings-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    Některé předměty na studenty-spravované DokuWiki (FitWiki) vyžadují přihlášení. Vložte sem své session cookies (např. <code>DokuWiki=...; DW...=...</code>) z prohlížeče.
+                </p>
+                <div class="form-group">
+                    <label for="cookies-textarea">DokuWiki Cookies řetězec:</label>
+                    <textarea id="cookies-textarea" placeholder="DokuWiki=7ca1i426o4t...; DW7fa065a...=..." rows="4"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-cancel-settings">Zrušit</button>
+                <button class="btn btn-primary" id="btn-save-settings"><i class="fa-solid fa-floppy-disk"></i> Uložit nastavení</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Markdown Viewer Modal -->
+    <div class="modal-overlay" id="viewer-modal">
+        <div class="modal-card modal-card-large">
+            <div class="modal-header">
+                <h3 id="viewer-title">Náhled souboru</h3>
+                <div class="viewer-actions">
+                    <a href="#" target="_blank" class="btn btn-secondary btn-sm" id="btn-viewer-open-pdf" style="display: none;">
+                        <i class="fa-solid fa-file-pdf"></i> Otevřít PDF
+                    </a>
+                    <button class="modal-close" id="btn-close-viewer-modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div class="modal-body" id="viewer-body">
+                <!-- Markdown parsed content goes here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="/static/script.js?v=177"></script>
+</body>
+</html>
