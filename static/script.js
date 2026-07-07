@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 logToConsole(`Systém: Cookies byly úspěšně uloženy.`, 'system-line');
                 closeModal(settingsModal);
                 checkCookieStatus();
+                loadCourses();
             } else {
                 alert(`Chyba: ${data.message}`);
             }
