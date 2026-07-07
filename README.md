@@ -27,6 +27,8 @@ services:
     container_name: fitwiki-scraper
     ports:
       - "5000:5000"
+    env_file:
+      - .env
     volumes:
       - ./downloads:/app/downloads
     restart: unless-stopped
