@@ -1,6 +1,6 @@
 services:
   fitwiki-scraper:
-    build: .
+    image: ghcr.io/dzendys/fitwiki-scraper:latest
     container_name: fitwiki-scraper
     ports:
       - "5000:5000"

@@ -18,18 +18,25 @@ FitWiki Context Scraper is a web client interface that connects directly to the 
 
 ### 1. Using Docker Compose (Recommended)
 
-To run the web service in a sandboxed container, clone the repository with submodules and spin it up using Docker Compose:
+To run the web service in a sandboxed container, create a `docker-compose.yml` file:
 
-1. Clone the repository and fetch the submodules:
-   ```bash
-   git clone --recursive <REPOSITORY_URL> && cd fitwiki-context-scraper
-   ```
-   *(If you already cloned the project, run: `git submodule update --init --recursive`)*
+```yaml
+services:
+  fitwiki-scraper:
+    image: ghcr.io/dzendys/fitwiki-scraper:latest
+    container_name: fitwiki-scraper
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./downloads:/app/downloads
+    restart: unless-stopped
+```
 
-2. Start the service:
-   ```bash
-   docker compose up -d
-   ```
+Then start the container:
+
+```bash
+docker compose up -d
+```
 
 The application will be accessible at `http://localhost:5000`. Your downloaded materials will be persistently synchronized inside the `./downloads` folder on your host machine.
 
